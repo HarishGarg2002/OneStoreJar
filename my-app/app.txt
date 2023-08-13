@@ -1,0 +1,70 @@
+import React, { useState, useMemo, useEffect } from "react";
+
+import { StyleSheet, Text, SafeAreaView, StatusBar } from "react-native";
+import Login from "./pages/Login";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import Onboardingpage from "./pages/Onboardingpage";
+import Home from "./pages/Home";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Corousel from "./pages/Corousel";
+
+export default function App() {
+  const Stack = createNativeStackNavigator();
+
+  const [isFirstLaunch, setIsFirstLaunch] = useState(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem("alreadyLaunched")
+      .then((value) => {
+        console.log("asyncstorage", value);
+        if (value == null) {
+          AsyncStorage.setItem("alreadyLaunched", "true"); // No need to wait for `setItem` to finish, although you might want to handle errors
+          setIsFirstLaunch(true);
+        } else {
+          setIsFirstLaunch(false);
+        }
+      })
+      .catch((err) => {
+        console.log("Inside async" + err);
+      }); // Add some error handling, also you can simply do setIsFirstLaunch(null)
+  }, []);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FE9357" />
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Corousel">
+          <Stack.Screen name="Login">
+            {(props) => <Login isLaunched={isFirstLaunch} {...props} />}
+          </Stack.Screen>
+          {isFirstLaunch && (
+            <Stack.Screen
+              name="OnBoarding"
+              component={Onboardingpage}
+              options={{ headerShown: false }}
+            />
+          )}
+          <Stack.Screen
+            name="Home"
+            component={Home}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Corousel"
+            component={Corousel}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+  },
+});
